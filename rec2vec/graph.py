@@ -113,6 +113,7 @@ def records_to_graph():
     The movie rating node 124_2, for example, will be connected to movie 124 and any users who rated 124 as a 2.
     """
     
+
     # Output files for the graph
     adjlist_file = open("./out.adj", 'w')
     node_list_file = open("./nodelist.txt", 'w')
@@ -133,7 +134,7 @@ def records_to_graph():
     
     movies, directors, actors, genres = load_movie_data()
     
-    
+
     # Create nodes for the different entities in the graph
     # Keep all the nodes that you make in nodelist.
     # nodedict should map node IDs to their respective node object.
@@ -142,10 +143,90 @@ def records_to_graph():
     nodelist = []
     nodedict = {}
     # YOUR CODE HERE
+    num_nodes=0
+    for director in directors:
+      if director is not None:
+        newNode=Node(num_nodes,director,type="director")
+        nodelist.append(newNode)
+        nodedict["dir_"+director]=newNode
+        num_nodes+=1
+    for actor in actors:
+      newNode=Node(num_nodes,actor,type="actor")
+      nodelist.append(newNode)
+      nodedict["actor_"+actor]=newNode
+      num_nodes+=1
+    for genre in genres:
+      newNode=Node(num_nodes,genre,type="genre")
+      nodelist.append(newNode)
+      nodedict["genre_"+genre]=newNode
+      num_nodes+=1
+    for user in ratings.keys():
+      newNode=Node(num_nodes,user)
+      nodelist.append(newNode)
+      nodedict[user]=newNode
+      num_nodes+=1
+      
+    for movie in movies.keys():
+      newNode=Node(num_nodes,movie,type="movie")
+      nodelist.append(newNode)
+      nodedict[movie]=newNode
+      num_nodes+=1   
+
+    for movie in movies.keys():
+      newNode=Node(num_nodes,"rating1"+movie,type="rating")
+      nodelist.append(newNode)
+      nodedict["rating1"+movie]=newNode
+      num_nodes+=1   
+      newNode=Node(num_nodes,"rating2"+movie,type="rating")
+      nodelist.append(newNode)
+      nodedict["rating2"+movie]=newNode
+      num_nodes+=1   
+      newNode=Node(num_nodes,"rating3"+movie,type="rating")
+      nodelist.append(newNode)
+      nodedict["rating3"+movie]=newNode
+      num_nodes+=1   
+      newNode=Node(num_nodes,"rating3"+movie,type="rating")
+      nodelist.append(newNode)
+      nodedict["rating4"+movie]=newNode
+      num_nodes+=1   
+      newNode=Node(num_nodes,"rating5"+movie,type="rating")
+      nodelist.append(newNode)
+      nodedict["rating5"+movie]=newNode
+      num_nodes+=1   
+
+      
+
+      
 
     # Add edges between users and movie-rating nodes
+    for user, rating in ratings.iteritems():
+      for m,r in rating.iteritems():
+        userNode = nodedict[user]
+        ratingNode = nodedict['rating'+r+m]
+        movieNode = nodedict[m]
+        userNode.neighbors.append(ratingNode)
+        ratingNode.neighbors.append(userNode)
+        movieNode.neighbors.append(ratingNode)
+        ratingNode.neighbors.append(movieNode)
+
     # Add edges between movies and directors
+    for movie in movies.keys():
+      movieNode=nodedict[movie]
+      if movies[movie].director is not None:
+        nodedict["dir_"+movies[movie].director].neighbors.append(movieNode)
+        movieNode.neighbors.append(nodedict["dir_"+movies[movie].director])
+
+      for actor in movies[movie].actors:
+          nodedict["actor_"+actor].neighbors.append(movieNode)
+          movieNode.neighbors.append(nodedict["actor_"+actor])
+      for genre in movies[movie].genres: 
+          nodedict["genre_"+genre].neighbors.append(movieNode)
+          movieNode.neighbors.append(nodedict["genre_"+genre])
+
+
+
     # Add edges between movies and actors
+
     # Add edges between movies and genres
     # Add edges between movie ratings and movies
     # By "add an edge" we mean to update the neighbors list of the nodes in both directions:
@@ -167,8 +248,7 @@ def records_to_graph():
     
     return nodedict
 
-
-
+records_to_graph()
 
 
 class Graph(defaultdict):
@@ -271,6 +351,7 @@ class Graph(defaultdict):
         alpha: probability of restarts.
         start: the start node of the random walk.
     """
+
     G = self
     if start:
       path = [start]
@@ -296,7 +377,7 @@ def build_deepwalk_corpus(G, num_paths, path_length, alpha=0,
   walks = []
 
   nodes = list(G.nodes())
-  
+
   for cnt in range(num_paths):
     rand.shuffle(nodes)
     for node in nodes:

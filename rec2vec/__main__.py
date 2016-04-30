@@ -7,6 +7,7 @@ from time import time
 import numpy as np
 from sklearn.metrics import confusion_matrix, accuracy_score, mean_squared_error
 
+
 def process(args):
     # Create a graph from the training set
     nodedict = graph.records_to_graph()
@@ -14,7 +15,12 @@ def process(args):
     # Build the model using DeepWalk and Word2Vec
     G = graph.load_adjacencylist("out.adj", undirected=True)
     # YOUR CODE HERE
-                         
+    
+    corpus=graph.build_deepwalk_corpus(G,args.number_walks,args.walk_length)   
+    print len(corpus) 
+    
+    model= Word2Vec(corpus, size=args.representation_size, window=args.window_size,  min_count=0, workers=args.workers)   
+    print model      
     # Perform some evaluation of the model on the test dataset
     with open("./data/test_user_ratings.dat") as fin:
         fin.next()
@@ -38,7 +44,17 @@ def predict_rating(model, nodedict, user, movie):
     """
     # YOUR CODE HERE
 
-
+    max=-5
+    rating=1
+    
+    userID=nodedict[user].id
+    for i in range(1,6):
+        movieID=nodedict["rating"+str(i)+movie].id
+        if(model.similarity(movieID,userID)>max):
+            max=model.similarity(movieID,userID)
+            rating=i
+     
+    return rating 
 
 def main():
     parser = ArgumentParser("rec2vec", 
